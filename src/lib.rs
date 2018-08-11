@@ -34,20 +34,12 @@ impl Config {
 }
 
 pub fn search<'a>(query: &str, contents: &'a str, case_sensitive: bool) -> Vec<&'a str> {
-    let query = if case_sensitive {
-        query.into()
+    if case_sensitive {
+        contents.lines().filter(|l| l.contains(query)).collect()
     } else {
-        query.to_lowercase()
-    };
-    contents
-        .lines()
-        .filter(|line| {
-            if case_sensitive {
-                line.contains(&query)
-            } else {
-                line.to_lowercase().contains(&query)
-            }
-        }).collect()
+        let query = query.to_lowercase();
+        contents.lines().filter(|l| l.to_lowercase().contains(&query)).collect()
+    }
 }
 
 #[cfg(test)]
