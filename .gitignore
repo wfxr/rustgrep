@@ -2,4 +2,9 @@
 **/*.rs.bk
 Cargo.lock
 
-/.idea
+# For intellij idea
+.idea/*
+!.idea/dictionaries/
+/target
+/out
+*.iml

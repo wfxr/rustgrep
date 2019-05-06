@@ -4,6 +4,8 @@
 *   Created: 2018-05-01 22:31                                                  *
 *******************************************************************************/
 
+extern crate core;
+
 use std::env;
 use std::error::Error;
 use std::fs;
@@ -17,8 +19,8 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
 }
 
 pub struct Config {
-    pub query:          String,
-    pub filename:       String,
+    pub query: String,
+    pub filename: String,
     pub case_sensitive: bool,
 }
 
@@ -26,19 +28,24 @@ impl Config {
     pub fn new(mut args: std::env::Args) -> Result<Config, &'static str> {
         args.next();
         Ok(Config {
-            query:          args.next().ok_or("query not set")?,
-            filename:       args.next().ok_or("filename not set")?,
+            query: args.next().ok_or("query not set")?,
+            filename: args.next().ok_or("filename not set")?,
             case_sensitive: env::var("CASE_INSENSITIVE").is_err(),
         })
     }
 }
 
+pub fn search_with_transformer<'a, F>(query: &str, contents: &'a str, transform: F) -> Vec<&'a str> where F: Fn(&str) -> String {
+    contents
+        .lines()
+        .filter(|line| { transform(line).contains(query) })
+        .collect()
+}
+
 pub fn search<'a>(query: &str, contents: &'a str, case_sensitive: bool) -> Vec<&'a str> {
-    if case_sensitive {
-        contents.lines().filter(|l| l.contains(query)).collect()
-    } else {
-        let query = query.to_lowercase();
-        contents.lines().filter(|l| l.to_lowercase().contains(&query)).collect()
+    match case_sensitive {
+        true => search_with_transformer(query, contents, |line| line.to_owned()),
+        false => search_with_transformer(&query.to_lowercase(), contents, |line| line.to_lowercase())
     }
 }
 
