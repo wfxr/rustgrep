@@ -35,7 +35,7 @@ impl Config {
     }
 }
 
-pub fn search_with_transformer<'a, F>(query: &str, contents: &'a str, transform: F) -> Vec<&'a str> where F: Fn(&str) -> String {
+pub fn search_with_transformer<'a, F: Fn(&str) -> String>(query: &str, contents: &'a str, transform: F) -> Vec<&'a str> {
     contents
         .lines()
         .filter(|line| { transform(line).contains(query) })
