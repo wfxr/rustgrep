@@ -19,8 +19,8 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
 }
 
 pub struct Config {
-    pub query: String,
-    pub filename: String,
+    pub query:          String,
+    pub filename:       String,
     pub case_sensitive: bool,
 }
 
@@ -28,14 +28,16 @@ impl Config {
     pub fn new(mut args: std::env::Args) -> Result<Config, &'static str> {
         args.next();
         Ok(Config {
-            query: args.next().ok_or("query not set")?,
-            filename: args.next().ok_or("filename not set")?,
+            query:          args.next().ok_or("query not set")?,
+            filename:       args.next().ok_or("filename not set")?,
             case_sensitive: env::var("CASE_INSENSITIVE").is_err(),
         })
     }
 }
 
-pub fn search_with_filter<P>(contents: &str, predicate: P) -> Vec<&str> where P: Fn(&&str) -> bool
+pub fn search_with_filter<P>(contents: &str, predicate: P) -> Vec<&str>
+where
+    P: Fn(&&str) -> bool,
 {
     contents.lines().filter(predicate).collect()
 }
@@ -62,7 +64,10 @@ Rust:
 safe, fast, productive.
 Pick three.";
 
-        assert_eq!(vec!["safe, fast, productive."], search_with_query(query, contents, true));
+        assert_eq!(
+            vec!["safe, fast, productive."],
+            search_with_query(query, contents, true)
+        );
     }
 
     #[test]
@@ -85,7 +90,10 @@ Rust:
 safe, fast, productive.
 Pick three.
 Duct tape.";
-        assert_eq!(vec!["safe, fast, productive."], search_with_query(query, contents, true));
+        assert_eq!(
+            vec!["safe, fast, productive."],
+            search_with_query(query, contents, true)
+        );
     }
 
     #[test]
