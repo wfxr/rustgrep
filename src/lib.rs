@@ -12,7 +12,7 @@ use std::fs;
 
 pub fn run(config: Config) -> Result<(), Box<Error>> {
     let contents = fs::read_to_string(config.filename)?;
-    for line in search(&config.query, &contents, config.case_sensitive) {
+    for line in search_with_query(&config.query, &contents, config.case_sensitive) {
         println!("{}", line);
     }
     Ok(())
@@ -35,17 +35,18 @@ impl Config {
     }
 }
 
-pub fn search_with_transformer<'a, F: Fn(&str) -> String>(query: &str, contents: &'a str, transform: F) -> Vec<&'a str> {
-    contents
-        .lines()
-        .filter(|line| { transform(line).contains(query) })
-        .collect()
+pub fn search_with_filter<P>(contents: &str, predicate: P) -> Vec<&str> where P: Fn(&&str) -> bool
+{
+    contents.lines().filter(predicate).collect()
 }
 
-pub fn search<'a>(query: &str, contents: &'a str, case_sensitive: bool) -> Vec<&'a str> {
+pub fn search_with_query<'a>(query: &str, contents: &'a str, case_sensitive: bool) -> Vec<&'a str> {
     match case_sensitive {
-        true => search_with_transformer(query, contents, |line| line.to_owned()),
-        false => search_with_transformer(&query.to_lowercase(), contents, |line| line.to_lowercase())
+        true => search_with_filter(contents, |l| l.contains(query)),
+        false => {
+            let query = &query.to_lowercase();
+            search_with_filter(contents, |l| l.to_lowercase().contains(query))
+        }
     }
 }
 
@@ -61,7 +62,7 @@ Rust:
 safe, fast, productive.
 Pick three.";
 
-        assert_eq!(vec!["safe, fast, productive."], search(query, contents, true));
+        assert_eq!(vec!["safe, fast, productive."], search_with_query(query, contents, true));
     }
 
     #[test]
@@ -73,7 +74,7 @@ safe, fast, productive.
 Pick three.";
 
         let empty: Vec<&str> = Vec::new();
-        assert_eq!(empty, search(query, contents, true));
+        assert_eq!(empty, search_with_query(query, contents, true));
     }
 
     #[test]
@@ -84,7 +85,7 @@ Rust:
 safe, fast, productive.
 Pick three.
 Duct tape.";
-        assert_eq!(vec!["safe, fast, productive."], search(query, contents, true));
+        assert_eq!(vec!["safe, fast, productive."], search_with_query(query, contents, true));
     }
 
     #[test]
@@ -97,6 +98,6 @@ Pick three.
 Trust me.
 Duct tape.";
 
-        assert_eq!(vec!["Rust:", "Trust me."], search(query, contents, false));
+        assert_eq!(vec!["Rust:", "Trust me."], search_with_query(query, contents, false));
     }
 }
